@@ -97,7 +97,8 @@
     <label for="webhookUrl">Webhook URL (ถ้ามี):</label>
     <input id="webhookUrl" type="text" />
 
-    <button id="saveBtn">💾 บันทึก config</button>
+    <!-- ปิดปุ่มบันทึก เพราะ static hosting บันทึกไม่ได้ -->
+    <!-- <button id="saveBtn">💾 บันทึก config</button> -->
     <div id="status"></div>
   </div>
 
@@ -106,7 +107,7 @@
     const serverIP = document.getElementById("serverIP");
     const serverPort = document.getElementById("serverPort");
     const webhookUrlInput = document.getElementById("webhookUrl");
-    const saveBtn = document.getElementById("saveBtn");
+    // const saveBtn = document.getElementById("saveBtn");
     const status = document.getElementById("status");
     const serverSelect = document.getElementById("serverSelect");
 
@@ -119,7 +120,8 @@
 
     async function loadConfig() {
       try {
-        const res = await fetch(`/api/config/${currentServer}?` + Date.now());
+        // โหลดไฟล์ JSON แบบ static จาก public folder
+        const res = await fetch(`/public/config_${currentServer}.json?` + Date.now());
         if (!res.ok) throw new Error("โหลดไม่สำเร็จ");
         const config = await res.json();
         watchListEditor.value = (config.watchList || []).join("\n");
@@ -138,47 +140,12 @@
       }
     }
 
+    // ปิดฟังก์ชันบันทึกเพราะ static hosting บันทึกไม่ได้
+    /*
     saveBtn.addEventListener("click", async () => {
-      const watchList = watchListEditor.value.split("\n").map(x => x.trim()).filter(Boolean);
-      const config = {
-        watchList,
-        ip: serverIP.value.trim(),
-        port: serverPort.value.trim(),
-        webhookUrl: webhookUrlInput.value.trim()
-      };
-
-      if (!config.ip || !config.port) {
-        status.textContent = "❌ กรุณากรอก IP และ Port ให้ถูกต้อง";
-        status.style.color = "#ff5555";
-        return;
-      }
-
-      saveBtn.disabled = true;
-      status.textContent = "กำลังบันทึก config...";
-      status.style.color = "#00ccff";
-
-      try {
-        const res = await fetch('/api/save-config', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ serverName: currentServer, config })
-        });
-
-        if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.error || 'ไม่สามารถบันทึกได้');
-        }
-
-        const result = await res.json();
-        status.textContent = `✅ ${result.message}`;
-        status.style.color = "#00ffcc";
-      } catch (e) {
-        status.textContent = `❌ บันทึก config ไม่สำเร็จ: ${e.message}`;
-        status.style.color = "#ff5555";
-      } finally {
-        saveBtn.disabled = false;
-      }
+      // ไม่รองรับบน static hosting
     });
+    */
 
     loadConfig();
   </script>
