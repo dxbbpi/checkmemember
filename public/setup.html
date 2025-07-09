@@ -41,6 +41,8 @@
       margin-top: 10px;
       font-weight: 700;
     }
+    /* ปุ่มบันทึกถูกซ่อน */
+    /*
     button {
       background: linear-gradient(90deg, #00ccff, #005f99);
       color: #000;
@@ -58,6 +60,7 @@
       opacity: 0.6;
       cursor: not-allowed;
     }
+    */
     #status {
       margin-top: 20px;
       text-align: center;
@@ -85,17 +88,17 @@
     </select>
 
     <h2>📋 รายชื่อ WatchList (แยกบรรทัด)</h2>
-    <textarea id="watchListEditor" rows="10"></textarea>
+    <textarea id="watchListEditor" rows="10" readonly></textarea>
 
     <h2>🌐 ตั้งค่าเซิร์ฟเวอร์</h2>
     <label for="serverIP">IP Address:</label>
-    <input id="serverIP" type="text" />
+    <input id="serverIP" type="text" readonly />
 
     <label for="serverPort">Port:</label>
-    <input id="serverPort" type="text" />
+    <input id="serverPort" type="text" readonly />
 
     <label for="webhookUrl">Webhook URL (ถ้ามี):</label>
-    <input id="webhookUrl" type="text" />
+    <input id="webhookUrl" type="text" readonly />
 
     <!-- ปิดปุ่มบันทึก เพราะ static hosting บันทึกไม่ได้ -->
     <!-- <button id="saveBtn">💾 บันทึก config</button> -->
@@ -124,10 +127,12 @@
         const res = await fetch(`/public/config_${currentServer}.json?` + Date.now());
         if (!res.ok) throw new Error("โหลดไม่สำเร็จ");
         const config = await res.json();
+
         watchListEditor.value = (config.watchList || []).join("\n");
         serverIP.value = config.ip || "";
         serverPort.value = config.port || "";
         webhookUrlInput.value = config.webhookUrl || "";
+
         status.textContent = `✅ โหลด config_${currentServer}.json แล้ว`;
         status.style.color = "#00ffcc";
       } catch (e) {
