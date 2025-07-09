@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JUTI PLAYER CHECK</title>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Prompt', sans-serif;
+      background: linear-gradient(135deg, #0a0d14, #001f2f);
+      color: #e0f2ff;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    header {
+      width: 100%;
+      padding: 20px 0;
+      background-color: #00111f;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    header h1 {
+      margin: 0;
+      color: #00ccff;
+      text-shadow: 0 0 20px #00ccffaa;
+    }
+    .dropdown {
+      position: relative;
+      margin: 20px auto;
+    }
+    .dropdown-btn {
+      padding: 12px 24px;
+      font-size: 1rem;
+      border-radius: 30px;
+      background-color: #004466;
+      color: #00ffff;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 0 10px #00ccff88;
+    }
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: #001f33;
+      min-width: 160px;
+      border-radius: 8px;
+      box-shadow: 0 0 12px rgba(0, 204, 255, 0.3);
+      z-index: 1;
+    }
+    .dropdown-content button {
+      width: 100%;
+      padding: 12px;
+      background: none;
+      border: none;
+      color: #00ffff;
+      text-align: left;
+      cursor: pointer;
+    }
+    .dropdown-content button:hover {
+      background-color: #003344;
+    }
+    .dropdown:hover .dropdown-content {
+      display: block;
+    }
+    #currentServerLabel {
+      margin-top: 10px;
+      font-size: 1.1rem;
+      color: #66f0ff;
+    }
+    #result {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .panel {
+      background: #111a2a;
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 0 20px #00ccff55;
+      border: 1.5px solid #00ccffaa;
+      flex: 1 1 350px;
+      overflow-y: auto;
+      max-height: 500px;
+    }
+    .panel h2 {
+      text-align: center;
+      color: #00f7ff;
+      margin-bottom: 15px;
+    }
+    .player-card {
+      background: #1a2333;
+      margin-bottom: 8px;
+      padding: 10px;
+      border-left: 5px solid #00ffcc;
+      border-radius: 8px;
+      word-break: break-word;
+    }
+    .offline .player-card {
+      border-left-color: #ff4d4d;
+      background: #31171d;
+    }
+    #logPanel {
+      background: #0c1a25;
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 10px;
+      width: 100%;
+      max-width: 900px;
+      box-shadow: 0 0 10px #0088cc88;
+    }
+    #logPanel h3 {
+      margin: 0 0 10px;
+      color: #00ccff;
+    }
+    .log-box {
+      margin-bottom: 20px;
+    }
+    .log-box h4 {
+      margin-bottom: 6px;
+      color: #00f0ff;
+    }
+    .logs {
+      font-family: monospace;
+      font-size: 0.9rem;
+      max-height: 150px;
+      overflow-y: auto;
+      background-color: #08131d;
+      padding: 10px;
+      border-radius: 6px;
+    }
+    .clear-btn {
+      margin-top: 5px;
+      padding: 6px 12px;
+      border: none;
+      background: #003344;
+      color: #00ffff;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <header><h1>JUTI PLAYER MONITOR</h1></header>
+
+  <div class="dropdown">
+    <button class="dropdown-btn">เลือกเซิร์ฟเวอร์</button>
+    <div class="dropdown-content">
+      <button onclick="switchServer('RICH')">RICH</button>
+      <button onclick="switchServer('nova')">Nova</button>
+      <button onclick="switchServer('mafia')">Mafia</button>
+      <button onclick="switchServer('shadow')">Shadow</button>
+      <button onclick="switchServer('kylin')">Kylin</button>
+    </div>
+    <div id="currentServerLabel">ยังไม่ได้เลือกเซิร์ฟเวอร์</div>
+  </div>
+
+  <div id="result"></div>
+
+  <div id="logPanel">
+    <h3>LOG การเข้าและออกเซิฟเวอร์</h3>
+    <div class="log-box">
+      <h4>คนที่กำลังเข้าเซิฟเวอร์</h4>
+      <div id="logJoin" class="logs"></div>
+      <button class="clear-btn" onclick="clearLog('logJoin')">ล้าง Log เข้า</button>
+    </div>
+    <div class="log-box">
+      <h4>คนที่ออกจากเซิฟเวอร์</h4>
+      <div id="logLeave" class="logs"></div>
+      <button class="clear-btn" onclick="clearLog('logLeave')">ล้าง Log ออก</button>
+    </div>
+  </div>
+
+  <audio id="soundIn" src="https://cdn.pixabay.com/audio/2022/10/20/audio_8e2fbf83e2.mp3"></audio>
+  <audio id="soundOut" src="https://cdn.pixabay.com/audio/2022/10/20/audio_8e20b53702.mp3"></audio>
+
+  <script>
+    const resultEl = document.getElementById('result');
+    const logJoinEl = document.getElementById('logJoin');
+    const logLeaveEl = document.getElementById('logLeave');
+    const soundIn = document.getElementById('soundIn');
+    const soundOut = document.getElementById('soundOut');
+    const currentLabel = document.getElementById('currentServerLabel');
+
+    let currentServer = '';
+    let lastOnline = new Set();
+
+    function normalizeName(name) {
+      if (!name) return '';
+      return name.replace(/\[[^\]]+\]\s*/g, '').toLowerCase()
+                  .normalize('NFD').replace(/[̀-ͯ]/g, '')
+                  .replace(/[^a-z0-9ก-๙\s]/g, '').replace(/\s+/g, ' ').trim();
+    }
+
+    function logEvent(type, name) {
+      const el = type === 'join' ? logJoinEl : logLeaveEl;
+      const time = new Date().toLocaleTimeString();
+      el.innerHTML = `<div>[${time}] ${name}</div>` + el.innerHTML;
+      (type === 'join' ? soundIn : soundOut).play();
+    }
+
+    function clearLog(id) {
+      document.getElementById(id).innerHTML = '';
+    }
+
+    function switchServer(name) {
+      currentServer = name;
+      currentLabel.textContent = `เซิฟเวอร์ที่กำลังดูอยู่: ${name}`;
+      lastOnline.clear();
+      loadServer(name);
+    }
+
+    async function loadServer(name) {
+      try {
+        const configRes = await fetch(`/api/config/${name}?${Date.now()}`);
+        const config = await configRes.json();
+        const { watchList, ip, port } = config;
+
+        const res = await fetch(`https://dekhudbad.online/fivem/players?ip=${ip}&port=${port}`);
+        const players = await res.json();
+
+        const currentOnline = new Set();
+        const playerMap = new Map(players.map(p => [normalizeName(p.name), p]));
+        const online = [], offline = [];
+
+        watchList.forEach(original => {
+          const norm = normalizeName(original);
+          if (playerMap.has(norm)) {
+            online.push({ originalName: original, playerData: playerMap.get(norm) });
+            currentOnline.add(original);
+            if (!lastOnline.has(original)) logEvent('join', original);
+          } else {
+            offline.push(original);
+            if (lastOnline.has(original)) logEvent('leave', original);
+          }
+        });
+
+        lastOnline = currentOnline;
+
+        resultEl.innerHTML = `
+          <section class="panel online">
+            <h2>🟢 ออนไลน์ (${online.length})</h2>
+            <div class="player-list">
+              ${online.map(p => `<div class="player-card">🟢 ${p.originalName}<br/>Ping: ${p.playerData.ping ?? '-'} | ID: ${p.playerData.id ?? '-'}</div>`).join('') || '<p>ไม่มีใครออนไลน์</p>'}
+            </div>
+          </section>
+          <section class="panel offline">
+            <h2>🔴 ออฟไลน์ (${offline.length})</h2>
+            <div class="player-list">
+              ${offline.map(name => `<div class="player-card">🔴 ${name}</div>`).join('') || '<p>ไม่มีใครออฟไลน์</p>'}
+            </div>
+          </section>`;
+
+        setTimeout(() => loadServer(name), 15000);
+      } catch (err) {
+        resultEl.innerHTML = `<p style="color:red;">❌ ${err.message}</p>`;
+      }
+    }
+  </script>
+</body>
+</html>

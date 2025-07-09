@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JUTI CONFIG SETUP</title>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@500&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Prompt', sans-serif;
+      background: linear-gradient(135deg, #0a0d14 0%, #001f2f 100%);
+      color: #e0f2ff;
+      padding: 30px 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1, h2 {
+      text-align: center;
+      color: #00ccff;
+      text-shadow: 0 0 15px #00ccffcc;
+      margin-bottom: 20px;
+      font-weight: 700;
+    }
+    select, textarea, input {
+      width: 100%;
+      font-size: 1rem;
+      border-radius: 10px;
+      background: #11141c;
+      color: #00ffff;
+      border: 1.5px solid #00ccff;
+      padding: 12px 15px;
+      box-sizing: border-box;
+      margin-top: 5px;
+      margin-bottom: 30px;
+      resize: vertical;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: 700;
+    }
+    button {
+      background: linear-gradient(90deg, #00ccff, #005f99);
+      color: #000;
+      border: none;
+      padding: 14px 40px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 0 20px #00ccffbb;
+      margin: 0 auto;
+      display: block;
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    #status {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 1rem;
+      min-height: 24px;
+      color: #00ccff;
+      font-weight: 600;
+    }
+    .container {
+      max-width: 600px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <h1>🛠️ ตั้งค่า JUTI CONFIG</h1>
+  <div class="container">
+    <label for="serverSelect">เลือกเซิร์ฟเวอร์:</label>
+    <select id="serverSelect">
+      <option value="RICH">RICH</option>
+      <option value="nova">Nova</option>
+      <option value="mafia">Mafia</option>
+      <option value="shadow">Shadow</option>
+      <option value="kylin">Kylin</option>
+    </select>
+
+    <h2>📋 รายชื่อ WatchList (แยกบรรทัด)</h2>
+    <textarea id="watchListEditor" rows="10"></textarea>
+
+    <h2>🌐 ตั้งค่าเซิร์ฟเวอร์</h2>
+    <label for="serverIP">IP Address:</label>
+    <input id="serverIP" type="text" />
+
+    <label for="serverPort">Port:</label>
+    <input id="serverPort" type="text" />
+
+    <label for="webhookUrl">Webhook URL (ถ้ามี):</label>
+    <input id="webhookUrl" type="text" />
+
+    <button id="saveBtn">💾 บันทึก config</button>
+    <div id="status"></div>
+  </div>
+
+  <script>
+    const watchListEditor = document.getElementById("watchListEditor");
+    const serverIP = document.getElementById("serverIP");
+    const serverPort = document.getElementById("serverPort");
+    const webhookUrlInput = document.getElementById("webhookUrl");
+    const saveBtn = document.getElementById("saveBtn");
+    const status = document.getElementById("status");
+    const serverSelect = document.getElementById("serverSelect");
+
+    let currentServer = serverSelect.value;
+
+    serverSelect.addEventListener("change", () => {
+      currentServer = serverSelect.value;
+      loadConfig();
+    });
+
+    async function loadConfig() {
+      try {
+        const res = await fetch(`/api/config/${currentServer}?` + Date.now());
+        if (!res.ok) throw new Error("โหลดไม่สำเร็จ");
+        const config = await res.json();
+        watchListEditor.value = (config.watchList || []).join("\n");
+        serverIP.value = config.ip || "";
+        serverPort.value = config.port || "";
+        webhookUrlInput.value = config.webhookUrl || "";
+        status.textContent = `✅ โหลด config_${currentServer}.json แล้ว`;
+        status.style.color = "#00ffcc";
+      } catch (e) {
+        watchListEditor.value = "";
+        serverIP.value = "";
+        serverPort.value = "";
+        webhookUrlInput.value = "";
+        status.textContent = `⚠️ ไม่พบหรือโหลด config_${currentServer}.json ไม่สำเร็จ`;
+        status.style.color = "#ffaa00";
+      }
+    }
+
+    saveBtn.addEventListener("click", async () => {
+      const watchList = watchListEditor.value.split("\n").map(x => x.trim()).filter(Boolean);
+      const config = {
+        watchList,
+        ip: serverIP.value.trim(),
+        port: serverPort.value.trim(),
+        webhookUrl: webhookUrlInput.value.trim()
+      };
+
+      if (!config.ip || !config.port) {
+        status.textContent = "❌ กรุณากรอก IP และ Port ให้ถูกต้อง";
+        status.style.color = "#ff5555";
+        return;
+      }
+
+      saveBtn.disabled = true;
+      status.textContent = "กำลังบันทึก config...";
+      status.style.color = "#00ccff";
+
+      try {
+        const res = await fetch('/api/save-config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ serverName: currentServer, config })
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || 'ไม่สามารถบันทึกได้');
+        }
+
+        const result = await res.json();
+        status.textContent = `✅ ${result.message}`;
+        status.style.color = "#00ffcc";
+      } catch (e) {
+        status.textContent = `❌ บันทึก config ไม่สำเร็จ: ${e.message}`;
+        status.style.color = "#ff5555";
+      } finally {
+        saveBtn.disabled = false;
+      }
+    });
+
+    loadConfig();
+  </script>
+</body>
+</html>
