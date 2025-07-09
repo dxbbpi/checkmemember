@@ -219,11 +219,15 @@
 
     async function loadServer(name) {
       try {
+        // เรียก config API ที่ backend ของเรา
         const configRes = await fetch(`/api/config/${name}?${Date.now()}`);
+        if (!configRes.ok) throw new Error('โหลด config ไม่สำเร็จ');
         const config = await configRes.json();
         const { watchList, ip, port } = config;
 
+        // เรียก API player จากแหล่งอื่นตาม config
         const res = await fetch(`https://dekhudbad.online/fivem/players?ip=${ip}&port=${port}`);
+        if (!res.ok) throw new Error('โหลดข้อมูลผู้เล่นไม่สำเร็จ');
         const players = await res.json();
 
         const currentOnline = new Set();
