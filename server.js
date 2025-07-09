@@ -1,16 +1,17 @@
-// server.js
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const cors = require('cors');
 
 const app = express();
-const port = 3000;
+
+// ใช้พอร์ตจาก environment variable ของ Render (ถ้าไม่มีให้ default 3000)
+const port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
 
-// Serve static files from 'public'
+// serve static frontend จากโฟลเดอร์ public
 app.use(express.static(path.join(__dirname, 'public')));
 
 const configDir = path.join(__dirname, 'public', 'configs');
@@ -57,6 +58,7 @@ app.post('/api/save-config', (req, res) => {
   });
 });
 
+// สั่งให้ server รัน listen พอร์ตที่กำหนด
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
